@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CafeCash – Stock & Inventory</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --primary: #1E3A8A;
+            --accent: #FBBF24;
+            --card: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+            --radius: 1rem;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --text: #f1f5f9;
+            --primary: #3B82F6;
+            --accent: #F59E0B;
+            --card: #1e293b;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: .3s;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .logo { display: flex; align-items: center; gap: 0.5rem; }
+        .logo img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .logo .fallback { font-size: 1.8rem; display: none; }
+        .logo span { font-weight: 700; font-size: 1.3rem; }
+        nav a { color: white; text-decoration: none; margin: 0 0.7rem; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .header-right { display: flex; align-items: center; gap: 0.6rem; position: relative; }
+        .branch { background: var(--accent); color: #000; border: none; padding: 0.25rem 0.7rem; border-radius: 1rem; font-weight: 600; }
+        .dark-btn { background: transparent; border: 2px solid white; color: white; padding: 0.2rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; }
+        .menu-btn { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; }
+        .dropdown {
+            position: absolute; right: 0; top: 2.3rem; background: var(--card); color: var(--text);
+            box-shadow: var(--shadow); border-radius: 0.5rem; display: none; flex-direction: column; min-width: 180px; z-index: 10;
+        }
+        .dropdown a, .dropdown button {
+            padding: 0.7rem 1rem; background: none; border: none; text-align: left; color: var(--text);
+            text-decoration: none; cursor: pointer;
+        }
+        .dropdown a:hover, .dropdown button:hover { background: #e2e8f0; }
+        body.dark .dropdown a:hover, body.dark .dropdown button:hover { background: #374151; }
+        main { padding: 1.5rem; max-width: 1000px; margin: auto; }
+        .section {
+            background: var(--card);
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.2rem;
+        }
+        input, button { padding: 0.45rem 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; background: var(--bg); color: var(--text); }
+        button.primary { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+        }
+        th, td {
+            padding: 0.6rem 0.4rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th { background: var(--primary); color: white; font-weight: 600; }
+        body.dark th { background: #1e293b; }
+        .low { color: #dc2626; font-weight: bold; }
+        .expiring-soon { color: #f59e0b; font-weight: bold; }
+        .expired { color: #dc2626; font-weight: bold; }
+        .period { display: flex; gap: 0.4rem; margin: 0.8rem 0; flex-wrap: wrap; }
+        .period button {
+            border: 2px solid var(--primary); border-radius: 2rem; background: transparent;
+            color: var(--text); cursor: pointer; padding: 0.3rem 1rem;
+        }
+        .period button.active { background: var(--primary); color: white; }
+        .flex-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .sales-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem 0.8rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .sales-grid .item-name { font-weight: 500; }
+        .sales-grid input { width: 100%; max-width: 100px; }
+        .restock-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.4rem 0.8rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .restock-grid .item-name { font-weight: 500; }
+        .restock-grid input { width: 100%; max-width: 100px; }
+        @media (max-width: 600px) {
+            .sales-grid, .restock-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .hint { font-size: 0.8rem; color: #64748b; margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <img src="Screenshot_20260623_231104.jpg" alt="CafeCash" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <span class="fallback">☕</span>
+        <span>CafeCash</span>
+    </div>
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="stock.html">Stock</a>
+        <a href="subscription.html">Subscription</a>
+    </nav>
+    <div class="header-right">
+        <select class="branch" id="branchSel">
+            <option value="store1">Store 1</option>
+            <option value="store2">Store 2</option>
+        </select>
+        <button class="dark-btn" id="darkToggle">Light/Dark</button>
+        <button class="menu-btn" id="menuBtn">&#x22EE;</button>
+        <div class="dropdown" id="dropdownMenu" onclick="event.stopPropagation()">
+            <a href="subscription.html">Subscription Policy</a>
+            <button id="changeAcc">Change Account</button>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </div>
+</header>
+<main>
+    <!-- Add Stock Item -->
+    <div class="section">
+        <h3>➕ Add Stock Item</h3>
+        <div class="flex-row">
+            <input type="text" id="itemName" placeholder="Item name" />
+            <input type="number" id="cost" placeholder="Cost price" step="0.01" />
+            <input type="number" id="sell" placeholder="Selling price" step="0.01" />
+            <input type="number" id="qty" placeholder="Initial qty" step="1" />
+            <input type="date" id="expiry" />
+            <button class="primary" id="addBtn">Add Item</button>
+        </div>
+    </div>
+
+    <!-- Current Stock -->
+    <div class="section">
+        <h3>📋 Current Stock</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Cost (R)</th>
+                        <th>Sell (R)</th>
+                        <th>Stock</th>
+                        <th>Expiry</th>
+                        <th>Alert</th>
+                    </tr>
+                </thead>
+                <tbody id="stockBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Record Daily Sales (only sold) -->
+    <div class="section">
+        <h3>📝 Record Daily Sales</h3>
+        <p class="hint">Enter the quantity sold for each item. Stock will decrease automatically.</p>
+        <input type="date" id="salesDate" style="margin:0.5rem 0 0.8rem;" />
+        <div id="salesInputs"></div>
+        <button class="primary" id="recordBtn">Record Sales</button>
+    </div>
+
+    <!-- Receive Stock (restock) -->
+    <div class="section">
+        <h3>📦 Receive Stock (Restock)</h3>
+        <p class="hint">Add quantities to your inventory when new goods arrive.</p>
+        <div id="restockInputs"></div>
+        <button class="primary" id="restockBtn">Update Stock</button>
+    </div>
+
+    <!-- Profit Summary -->
+    <div class="section">
+        <h3>📊 Profit Summary</h3>
+        <div class="period">
+            <button class="active" data-p="daily">1 Day</button>
+            <button data-p="weekly">7 Days</button>
+            <button data-p="monthly">Monthly</button>
+        </div>
+        <div id="profitSum"></div>
+        <p style="font-size:0.8rem; color:#64748b; margin-top:0.3rem;">COGS = Cost of Goods Sold</p>
+    </div>
+</main>
+
+<script>
+    const user = sessionStorage.getItem('lg_user');
+    if (!user) location.href = 'index.html';
+    let branch = localStorage.getItem(`lg_${user}_branch`) || 'store1';
+    localStorage.setItem('lg_branch', branch);
+    const key = (s) => `lg_${user}_${branch}_${s}`;
+
+    const getItems = () => JSON.parse(localStorage.getItem(key('items')) || '[]');
+    const saveItems = (arr) => localStorage.setItem(key('items'), JSON.stringify(arr));
+    const getSales = () => JSON.parse(localStorage.getItem(key('sales')) || '{}');
+    const saveSales = (obj) => localStorage.setItem(key('sales'), JSON.stringify(obj));
+
+    // ─── RENDER ALL SECTIONS ──────────────────────────────────────
+    function render() {
+        const items = getItems();
+        const now = new Date();
+
+        // Current Stock Table
+        document.getElementById('stockBody').innerHTML = items.map(i => {
+            const low = i.quantity < 5;
+            const expired = i.expiry && new Date(i.expiry) < now;
+            const expiringSoon = i.expiry && new Date(i.expiry) >= now && new Date(i.expiry) <= new Date(now.getTime() + 7 * 86400000);
+            let alertClass = '', alertText = '';
+            if (expired) { alertClass = 'expired'; alertText = '⏰ Expired'; }
+            else if (expiringSoon) { alertClass = 'expiring-soon'; alertText = '⚠️ Expiring soon'; }
+            else if (low) { alertClass = 'low'; alertText = '⚠️ Low stock'; }
+            return `<tr>
+                        <td>${i.name}</td>
+                        <td>R ${i.costPrice.toFixed(2)}</td>
+                        <td>R ${i.sellingPrice.toFixed(2)}</td>
+                        <td class="${low ? 'low' : ''}">${i.quantity}</td>
+                        <td>${i.expiry || 'N/A'}</td>
+                        <td class="${alertClass}">${alertText}</td>
+                    </tr>`;
+        }).join('') || '<tr><td colspan="6" style="text-align:center;">No items in stock.</td></tr>';
+
+        // Sales Inputs (only Sold)
+        const salesContainer = document.getElementById('salesInputs');
+        if (items.length === 0) {
+            salesContainer.innerHTML = '<p>No items to record sales for. Add some stock first.</p>';
+        } else {
+            let html = '<div class="sales-grid">';
+            html += '<div class="item-name" style="font-weight:600;">Item</div>';
+            html += '<div style="font-weight:600;">Sold</div>';
+            items.forEach(i => {
+                html += `<div class="item-name">${i.name}</div>`;
+                html += `<input type="number" class="qSold" data-name="${i.name}" placeholder="0" min="0" />`;
+            });
+            html += '</div>';
+            salesContainer.innerHTML = html;
+        }
+
+        // Restock Inputs (Received)
+        const restockContainer = document.getElementById('restockInputs');
+        if (items.length === 0) {
+            restockContainer.innerHTML = '<p>No items to restock. Add items first.</p>';
+        } else {
+            let html = '<div class="restock-grid">';
+            html += '<div class="item-name" style="font-weight:600;">Item</div>';
+            html += '<div style="font-weight:600;">Quantity to add</div>';
+            items.forEach(i => {
+                html += `<div class="item-name">${i.name}</div>`;
+                html += `<input type="number" class="qIn" data-name="${i.name}" placeholder="0" min="0" />`;
+            });
+            html += '</div>';
+            restockContainer.innerHTML = html;
+        }
+    }
+
+    // ─── RECORD SALES (only subtract) ──────────────────────────────
+    function recordSales() {
+        const date = document.getElementById('salesDate').value;
+        if (!date) return alert('Select a date');
+        const items = getItems();
+        const sales = getSales();
+        const daySales = sales[date] || {};
+
+        const newSold = {};
+        document.querySelectorAll('.qSold').forEach(inp => {
+            const name = inp.dataset.name;
+            const q = parseInt(inp.value) || 0;
+            if (q > 0) newSold[name] = (newSold[name] || 0) + q;
+        });
+
+        if (Object.keys(newSold).length === 0) {
+            return alert('No sales entered.');
+        }
+
+        // Update sales record
+        for (let [name, qty] of Object.entries(newSold)) {
+            daySales[name] = (daySales[name] || 0) + qty;
+        }
+        sales[date] = daySales;
+        saveSales(sales);
+
+        // Subtract from stock
+        let updated = false;
+        items.forEach(item => {
+            if (newSold[item.name]) {
+                item.quantity = Math.max(0, item.quantity - newSold[item.name]);
+                updated = true;
+            }
+        });
+        if (updated) {
+            saveItems(items);
+        }
+
+        // Clear inputs
+        document.querySelectorAll('.qSold').forEach(inp => inp.value = '');
+        render();
+        updateProfit();
+        alert('Sales recorded! Stock updated.');
+    }
+
+    // ─── RESTOCK (add quantities) ──────────────────────────────────
+    function restock() {
+        const items = getItems();
+        const newReceived = {};
+        document.querySelectorAll('.qIn').forEach(inp => {
+            const name = inp.dataset.name;
+            const q = parseInt(inp.value) || 0;
+            if (q > 0) newReceived[name] = (newReceived[name] || 0) + q;
+        });
+
+        if (Object.keys(newReceived).length === 0) {
+            return alert('No quantities entered.');
+        }
+
+        let updated = false;
+        items.forEach(item => {
+            if (newReceived[item.name]) {
+                item.quantity += newReceived[item.name];
+                updated = true;
+            }
+        });
+        if (updated) {
+            saveItems(items);
+        }
+
+        document.querySelectorAll('.qIn').forEach(inp => inp.value = '');
+        render();
+        updateProfit();
+        alert('Stock updated!');
+    }
+
+    // ─── PROFIT CALC ──────────────────────────────────────────────
+    function calcProfit(days) {
+        const sales = getSales(), items = getItems();
+        const end = new Date(), start = new Date();
+        start.setDate(end.getDate() - days + 1);
+        let rev = 0, cogs = 0;
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const date = d.toISOString().slice(0, 10);
+            const day = sales[date] || {};
+            for (let [name, qty] of Object.entries(day)) {
+                const i = items.find(x => x.name === name);
+                if (i) { rev += qty * i.sellingPrice; cogs += qty * i.costPrice; }
+            }
+        }
+        return { revenue: rev, cogs, gross: rev - cogs };
+    }
+
+    function updateProfit(period = 'daily') {
+        const m = { daily: 1, weekly: 7, monthly: 30 };
+        const p = calcProfit(m[period]);
+        document.getElementById('profitSum').innerHTML =
+            `Revenue: R ${p.revenue.toFixed(2)} | COGS: R ${p.cogs.toFixed(2)} | Gross Profit: R ${p.gross.toFixed(2)}`;
+    }
+
+    // ─── EVENT BINDINGS ────────────────────────────────────────────
+    document.getElementById('addBtn').onclick = () => {
+        const name = document.getElementById('itemName').value.trim();
+        const cost = +document.getElementById('cost').value;
+        const sell = +document.getElementById('sell').value;
+        const qty = +document.getElementById('qty').value;
+        const exp = document.getElementById('expiry').value;
+        if (!name || isNaN(cost) || isNaN(sell) || isNaN(qty)) return alert('Fill all fields');
+        const arr = getItems();
+        arr.push({ name, costPrice: cost, sellingPrice: sell, quantity: qty, expiry: exp });
+        saveItems(arr);
+        render();
+        document.getElementById('itemName').value = '';
+        document.getElementById('cost').value = '';
+        document.getElementById('sell').value = '';
+        document.getElementById('qty').value = '';
+        document.getElementById('expiry').value = '';
+    };
+
+    document.getElementById('recordBtn').onclick = recordSales;
+    document.getElementById('restockBtn').onclick = restock;
+
+    document.querySelectorAll('.period button').forEach(btn => {
+        btn.onclick = function () {
+            document.querySelectorAll('.period button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateProfit(this.dataset.p);
+        };
+    });
+
+    document.getElementById('darkToggle').onclick = () => document.body.classList.toggle('dark');
+    document.getElementById('menuBtn').onclick = (e) => {
+        e.stopPropagation();
+        const d = document.getElementById('dropdownMenu');
+        d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
+    };
+    document.addEventListener('click', () => document.getElementById('dropdownMenu').style.display = 'none');
+    document.getElementById('logoutBtn').onclick = () => { sessionStorage.removeItem('lg_user'); location.href = 'index.html'; };
+    document.getElementById('changeAcc').onclick = () => { sessionStorage.removeItem('lg_user'); location.href = 'index.html'; };
+
+    document.getElementById('branchSel').value = branch;
+    document.getElementById('branchSel').onchange = (e) => {
+        branch = e.target.value;
+        localStorage.setItem(`lg_${user}_branch`, branch);
+        localStorage.setItem('lg_branch', branch);
+        location.reload();
+    };
+
+    document.getElementById('salesDate').value = new Date().toISOString().slice(0, 10);
+    render();
+    updateProfit();
+</script>
+</body>
+</html>

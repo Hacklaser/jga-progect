@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CafeCash – Dashboard</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --primary: #1E3A8A;
+            --accent: #FBBF24;
+            --card: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+            --radius: 1rem;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --text: #f1f5f9;
+            --primary: #3B82F6;
+            --accent: #F59E0B;
+            --card: #1e293b;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: .3s;
+            padding-bottom: 80px;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .logo { display: flex; align-items: center; gap: 0.5rem; }
+        .logo img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .logo .fallback { font-size: 1.8rem; display: none; }
+        .logo span { font-weight: 700; font-size: 1.3rem; }
+        nav a { color: white; text-decoration: none; margin: 0 0.7rem; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .header-right { display: flex; align-items: center; gap: 0.6rem; position: relative; }
+        .branch { background: var(--accent); color: #000; border: none; padding: 0.25rem 0.7rem; border-radius: 1rem; font-weight: 600; }
+        .dark-btn { background: transparent; border: 2px solid white; color: white; padding: 0.2rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; }
+        .menu-btn { background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer; line-height: 1; }
+        .dropdown {
+            position: absolute; right: 0; top: 2.3rem; background: var(--card); color: var(--text);
+            box-shadow: var(--shadow); border-radius: 0.5rem; display: none; flex-direction: column; min-width: 180px; z-index: 10;
+        }
+        .dropdown a, .dropdown button {
+            padding: 0.7rem 1rem; background: none; border: none; text-align: left; color: var(--text);
+            text-decoration: none; cursor: pointer; font-size: 0.9rem;
+        }
+        .dropdown a:hover, .dropdown button:hover { background: #e2e8f0; }
+        body.dark .dropdown a:hover, body.dark .dropdown button:hover { background: #374151; }
+        main { padding: 1.5rem; max-width: 1100px; margin: auto; }
+
+        /* ─── AI CHAT ─── */
+        .ai-float {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 999;
+            transition: .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ai-float:hover { transform: scale(1.08); }
+        .ai-modal {
+            position: fixed;
+            bottom: 5.5rem;
+            right: 2rem;
+            width: 380px;
+            max-width: calc(100vw - 2rem);
+            background: var(--card);
+            border-radius: 1.2rem;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            max-height: 520px;
+            border: 1px solid var(--shadow);
+            overflow: hidden;
+        }
+        .ai-modal.open { display: flex; }
+        .ai-header {
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .ai-header button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .ai-messages {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 260px;
+            background: var(--bg);
+        }
+        .ai-message {
+            padding: 0.5rem 0.8rem;
+            border-radius: 0.8rem;
+            max-width: 85%;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        .ai-message.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+        }
+        .ai-message.assistant {
+            background: var(--card);
+            border: 1px solid #e2e8f0;
+            align-self: flex-start;
+        }
+        body.dark .ai-message.assistant { border-color: #475569; }
+
+        /* Suggested questions chips */
+        .suggested-questions {
+            padding: 0.4rem 1rem 0.2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            background: var(--bg);
+            border-top: 1px solid #e2e8f0;
+        }
+        .suggested-questions button {
+            background: var(--card);
+            border: 1px solid var(--primary);
+            color: var(--text);
+            border-radius: 2rem;
+            padding: 0.2rem 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: .2s;
+            font-weight: 500;
+        }
+        .suggested-questions button:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .ai-input {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            border-top: 1px solid #e2e8f0;
+            background: var(--card);
+        }
+        .ai-input input {
+            flex: 1;
+            padding: 0.5rem 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 2rem;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+        }
+        .ai-input button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ─── DASHBOARD STYLES ─── */
+        .period { display: flex; gap: 0.4rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+        .period button {
+            padding: 0.35rem 1rem; border: 2px solid var(--primary); border-radius: 2rem;
+            background: transparent; color: var(--text); font-weight: 600; cursor: pointer;
+            transition: .2s;
+        }
+        .period button.active { background: var(--primary); color: white; }
+        .notifications {
+            background: var(--card); border-radius: var(--radius); padding: 1rem 1.2rem;
+            box-shadow: var(--shadow); margin-bottom: 1.2rem;
+            border-left: 4px solid var(--accent);
+        }
+        .notifications h4 { margin-bottom: 0.4rem; display: flex; gap: 0.5rem; align-items: center; }
+        .notifications .badge {
+            background: #ef4444; color: white; border-radius: 999px; padding: 0 0.6rem; font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .notif-list { list-style: none; padding-left: 0; }
+        .notif-list li { padding: 0.2rem 0; font-size: 0.9rem; border-bottom: 1px solid #e2e8f0; }
+        .notif-list li:last-child { border-bottom: none; }
+        .notif-list .low { color: #dc2626; font-weight: 600; }
+        .notif-list .expiring { color: #f59e0b; font-weight: 600; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin-bottom: 1.5rem; }
+        .card {
+            background: var(--card); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); text-align: center;
+        }
+        .card .label { font-size: 0.85rem; color: #64748b; }
+        .card .value { font-size: 1.6rem; font-weight: 700; }
+        .chart-box {
+            background: var(--card); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem;
+        }
+        canvas { width: 100%; height: 250px; display: block; }
+        .exp-panel {
+            background: var(--card); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 1.5rem;
+            display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: flex-end;
+        }
+        .exp-panel label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
+        .exp-panel input { width: 100px; padding: 0.4rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; background: var(--bg); color: var(--text); }
+        .top-items { background: var(--card); padding: 1.2rem; border-radius: var(--radius); box-shadow: var(--shadow); }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th, td { padding: 0.5rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        button.primary { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; }
+        .export-btn {
+            background: #16a34a;
+            color: white;
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-left: 1rem;
+        }
+        .export-btn:hover { background: #15803d; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <img src="Screenshot_20260623_231104.jpg" alt="CafeCash" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <span class="fallback">☕</span>
+        <span>CafeCash</span>
+    </div>
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="stock.html">Stock</a>
+        <a href="subscription.html">Subscription</a>
+    </nav>
+    <div class="header-right">
+        <select class="branch" id="branchSel">
+            <option value="store1">Store 1</option>
+            <option value="store2">Store 2</option>
+        </select>
+        <button class="dark-btn" id="darkToggle">Light/Dark</button>
+        <button class="menu-btn" id="menuBtn">&#x22EE;</button>
+        <div class="dropdown" id="dropdownMenu" onclick="event.stopPropagation()">
+            <a href="subscription.html">Subscription Policy</a>
+            <button id="changeAcc">Change Account</button>
+            <button id="logoutBtn">Logout</button>
+        </div>
+    </div>
+</header>
+<main>
+    <!-- Notifications -->
+    <div class="notifications" id="notifPanel">
+        <h4>🔔 Notifications <span class="badge" id="notifCount">0</span></h4>
+        <ul class="notif-list" id="notifList"><li>No alerts.</li></ul>
+    </div>
+
+    <div class="top-bar">
+        <div class="period">
+            <button class="active" data-p="daily">1 Day</button>
+            <button data-p="weekly">7 Days</button>
+            <button data-p="monthly">Monthly</button>
+        </div>
+        <div>
+            <button class="export-btn" id="exportBtn">📥 Export Summary</button>
+        </div>
+    </div>
+
+    <div class="cards" id="summaryCards"></div>
+    <div class="chart-box">
+        <h3>Net Profit (Last 7 Days)</h3>
+        <canvas id="profitChart"></canvas>
+    </div>
+    <div class="exp-panel">
+        <label>Rent<input type="number" id="rent" step="0.01"></label>
+        <label>Electricity<input type="number" id="elec" step="0.01"></label>
+        <label>Gas<input type="number" id="gas" step="0.01"></label>
+        <label>Wages<input type="number" id="wages" step="0.01"></label>
+        <button class="primary" id="saveExp">Save Expenses</button>
+    </div>
+    <div class="top-items">
+        <h3>Top 10 Selling Items</h3>
+        <table><thead><tr><th>Item</th><th>Units Sold</th><th>Revenue</th></tr></thead><tbody id="topBody"></tbody></table>
+    </div>
+</main>
+
+<!-- ─── AI FLOATING BUTTON ─── -->
+<button class="ai-float" id="aiToggle">💬</button>
+
+<!-- ─── AI CHAT MODAL ─── -->
+<div class="ai-modal" id="aiModal">
+    <div class="ai-header">
+        <span>🤖 CafeCash AI (Mock)</span>
+        <button id="aiClose">&times;</button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+        <div class="ai-message assistant">Hi! I'm a mock AI assistant. Ask me anything about your business – I'll use your data to give helpful answers.</div>
+    </div>
+    <div class="suggested-questions" id="suggestedQuestions">
+        <button data-q="What's my profit this week?">💰 Profit</button>
+        <button data-q="Show me low stock items">📦 Low stock</button>
+        <button data-q="Give me business advice">💡 Advice</button>
+        <button data-q="Top selling items">🏆 Top sellers</button>
+        <button data-q="Expense breakdown">📊 Expenses</button>
+        <button data-q="Summary of everything">📋 Full summary</button>
+    </div>
+    <div class="ai-input">
+        <input type="text" id="aiQuestion" placeholder="Type a question..." />
+        <button id="aiSend">Send</button>
+    </div>
+</div>
+
+<script>
+    // ─── DASHBOARD CORE ──────────────────────────────────────────────
+    const user = sessionStorage.getItem('lg_user');
+    if (!user) location.href = 'index.html';
+    let branch = localStorage.getItem(`lg_${user}_branch`) || 'store1';
+    localStorage.setItem('lg_branch', branch);
+    const key = (suffix) => `lg_${user}_${branch}_${suffix}`;
+
+    const getItems = () => JSON.parse(localStorage.getItem(key('items')) || '[]');
+    const getSales = () => JSON.parse(localStorage.getItem(key('sales')) || '{}');
+    const getExpenses = () => JSON.parse(localStorage.getItem(key('expenses')) || '{"rent":0,"electricity":0,"gas":0,"wages":0}');
+
+    function updateNotifications() {
+        const items = getItems();
+        const now = new Date();
+        const low = items.filter(i => i.quantity < 5);
+        const expiring = items.filter(i => i.expiry && new Date(i.expiry) <= new Date(now.getTime() + 7 * 86400000) && new Date(i.expiry) >= now);
+        const expired = items.filter(i => i.expiry && new Date(i.expiry) < now);
+        const list = document.getElementById('notifList');
+        let msgs = [];
+        if (low.length) msgs.push(...low.map(i => `<li class="low">⚠️ Low stock: <strong>${i.name}</strong> (${i.quantity} left)</li>`));
+        if (expiring.length) msgs.push(...expiring.map(i => `<li class="expiring">⏳ Expiring soon: <strong>${i.name}</strong> (${i.expiry})</li>`));
+        if (expired.length) msgs.push(...expired.map(i => `<li class="expiring" style="color:#dc2626;">❌ Expired: <strong>${i.name}</strong> (${i.expiry})</li>`));
+        if (!msgs.length) msgs.push('<li>✅ All items are healthy.</li>');
+        list.innerHTML = msgs.join('');
+        document.getElementById('notifCount').textContent = (low.length + expiring.length + expired.length) || '0';
+    }
+
+    const getDates = (days) => {
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - days + 1);
+        const res = [];
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1))
+            res.push(d.toISOString().slice(0, 10));
+        return res;
+    };
+
+    const calc = (days) => {
+        const sales = getSales(), items = getItems(), exp = getExpenses();
+        const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+        const dailyExp = (exp.rent + exp.electricity + exp.gas + exp.wages) / daysInMonth;
+        const dates = getDates(days);
+        let rev = 0, cogs = 0;
+        dates.forEach(date => {
+            const day = sales[date] || {};
+            for (let [name, qty] of Object.entries(day)) {
+                const item = items.find(i => i.name === name);
+                if (item) { rev += qty * item.sellingPrice; cogs += qty * item.costPrice; }
+            }
+        });
+        const gross = rev - cogs;
+        return { revenue: rev, cogs, grossProfit: gross, expenses: dailyExp * days, netProfit: gross - dailyExp * days };
+    };
+
+    function updateDashboard(period = 'daily') {
+        const daysMap = { daily: 1, weekly: 7, monthly: 30 };
+        const m = calc(daysMap[period]);
+        document.getElementById('summaryCards').innerHTML = `
+            <div class="card"><div class="label">Revenue</div><div class="value">R ${m.revenue.toFixed(2)}</div></div>
+            <div class="card"><div class="label">COGS</div><div class="value">R ${m.cogs.toFixed(2)}</div></div>
+            <div class="card"><div class="label">Gross Profit</div><div class="value">R ${m.grossProfit.toFixed(2)}</div></div>
+            <div class="card"><div class="label">Expenses</div><div class="value">R ${m.expenses.toFixed(2)}</div></div>
+            <div class="card"><div class="label">Net Profit</div><div class="value" style="color:${m.netProfit>=0?'#16a34a':'#dc2626'}">R ${m.netProfit.toFixed(2)}</div></div>`;
+        drawChart();
+        loadTopItems();
+        updateNotifications();
+    }
+
+    function drawChart() {
+        const sales = getSales(), items = getItems(), exp = getExpenses();
+        const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+        const daily = (exp.rent + exp.electricity + exp.gas + exp.wages) / daysInMonth;
+        const dates = getDates(7);
+        const profits = dates.map(date => {
+            const day = sales[date] || {};
+            let r = 0, c = 0;
+            for (let [name, qty] of Object.entries(day)) {
+                const i = items.find(x => x.name === name);
+                if (i) { r += qty * i.sellingPrice; c += qty * i.costPrice; }
+            }
+            return r - c - daily;
+        });
+        const canvas = document.getElementById('profitChart');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width || canvas.parentElement.clientWidth || 600;
+        canvas.height = 250;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const w = canvas.width, h = canvas.height;
+        const pad = { top: 20, bottom: 30, left: 40, right: 20 };
+        const chartW = w - pad.left - pad.right;
+        const chartH = h - pad.top - pad.bottom;
+        const maxVal = Math.max(...profits.map(Math.abs), 1);
+        const barW = Math.min(chartW / profits.length * 0.6, 40);
+        const gap = (chartW - barW * profits.length) / (profits.length + 1);
+        ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text');
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, pad.top);
+        ctx.lineTo(pad.left, h - pad.bottom);
+        ctx.lineTo(w - pad.right, h - pad.bottom);
+        ctx.stroke();
+        ctx.font = '10px Segoe UI';
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+        ctx.textAlign = 'center';
+        profits.forEach((p, i) => {
+            const x = pad.left + gap + i * (barW + gap) + barW / 2;
+            const barH = (Math.abs(p) / maxVal) * chartH;
+            const y = p >= 0 ? h - pad.bottom - barH : h - pad.bottom;
+            const gradient = ctx.createLinearGradient(0, y, 0, h - pad.bottom);
+            if (p >= 0) { gradient.addColorStop(0, '#22c55e'); gradient.addColorStop(1, '#16a34a'); }
+            else { gradient.addColorStop(0, '#ef4444'); gradient.addColorStop(1, '#dc2626'); }
+            ctx.fillStyle = gradient;
+            ctx.shadowColor = 'rgba(0,0,0,0.1)';
+            ctx.shadowBlur = 4;
+            ctx.fillRect(x - barW / 2, y, barW, barH);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+            ctx.fillText(p.toFixed(0), x, y - 4);
+            ctx.fillText(dates[i].slice(5), x, h - pad.bottom + 14);
+        });
+    }
+
+    function loadTopItems() {
+        const sales = getSales(), items = getItems();
+        const map = {};
+        for (let day of Object.values(sales))
+            for (let [name, qty] of Object.entries(day)) {
+                if (!map[name]) map[name] = { qty: 0, rev: 0 };
+                const item = items.find(i => i.name === name);
+                map[name].qty += qty;
+                if (item) map[name].rev += qty * item.sellingPrice;
+            }
+        const sorted = Object.entries(map).sort((a, b) => b[1].rev - a[1].rev).slice(0, 10);
+        document.getElementById('topBody').innerHTML = sorted.map(([n, s]) =>
+            `<tr><td>${n}</td><td>${s.qty}</td><td>R ${s.rev.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3">No sales data</td></tr>';
+    }
+
+    // ─── UI EVENTS (dashboard) ──────────────────────────────────────
+    document.getElementById('darkToggle').onclick = () => document.body.classList.toggle('dark');
+    document.getElementById('menuBtn').onclick = (e) => {
+        e.stopPropagation();
+        const d = document.getElementById('dropdownMenu');
+        d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
+    };
+    document.addEventListener('click', () => document.getElementById('dropdownMenu').style.display = 'none');
+    document.getElementById('logoutBtn').onclick = () => { sessionStorage.removeItem('lg_user'); location.href = 'index.html'; };
+    document.getElementById('changeAcc').onclick = () => { sessionStorage.removeItem('lg_user'); location.href = 'index.html'; };
+
+    document.getElementById('branchSel').value = branch;
+    document.getElementById('branchSel').onchange = (e) => {
+        branch = e.target.value;
+        localStorage.setItem(`lg_${user}_branch`, branch);
+        localStorage.setItem('lg_branch', branch);
+        location.reload();
+    };
+
+    document.querySelectorAll('.period button').forEach(btn => {
+        btn.onclick = function () {
+            document.querySelectorAll('.period button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            updateDashboard(this.dataset.p);
+        };
+    });
+
+    const expData = getExpenses();
+    document.getElementById('rent').value = expData.rent;
+    document.getElementById('elec').value = expData.electricity;
+    document.getElementById('gas').value = expData.gas;
+    document.getElementById('wages').value = expData.wages;
+    document.getElementById('saveExp').onclick = () => {
+        const newExp = {
+            rent: +document.getElementById('rent').value || 0,
+            electricity: +document.getElementById('elec').value || 0,
+            gas: +document.getElementById('gas').value || 0,
+            wages: +document.getElementById('wages').value || 0
+        };
+        localStorage.setItem(key('expenses'), JSON.stringify(newExp));
+        updateDashboard();
+    };
+
+    updateDashboard();
+    window.addEventListener('resize', drawChart);
+
+    // ──────────────────────────────────────────────────────────────────
+    // ─── MOCK AI ASSISTANT ──────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────
+
+    const aiToggle = document.getElementById('aiToggle');
+    const aiModal = document.getElementById('aiModal');
+    const aiClose = document.getElementById('aiClose');
+    const aiMessages = document.getElementById('aiMessages');
+    const aiQuestion = document.getElementById('aiQuestion');
+    const aiSend = document.getElementById('aiSend');
+    const suggestedBtns = document.querySelectorAll('#suggestedQuestions button');
+
+    aiToggle.addEventListener('click', () => {
+        aiModal.classList.toggle('open');
+        if (aiModal.classList.contains('open')) aiQuestion.focus();
+    });
+    aiClose.addEventListener('click', () => aiModal.classList.remove('open'));
+
+    // Suggested question click handler
+    suggestedBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const q = this.dataset.q;
+            aiQuestion.value = q;
+            sendQuestion();
+        });
+    });
+
+    // Mock AI response generator
+    function getMockAIResponse(question) {
+        const items = getItems();
+        const sales = getSales();
+        const expenses = getExpenses();
+        const totalStock = items.reduce((sum, i) => sum + i.quantity, 0);
+        const lowStock = items.filter(i => i.quantity < 5);
+        const expiringItems = items.filter(i => i.expiry && new Date(i.expiry) <= new Date(Date.now() + 7*86400000));
+        const last7days = getDates(7);
+        let totalRevenue = 0, totalCogs = 0;
+        last7days.forEach(date => {
+            const day = sales[date] || {};
+            for (let [name, qty] of Object.entries(day)) {
+                const item = items.find(i => i.name === name);
+                if (item) { totalRevenue += qty * item.sellingPrice; totalCogs += qty * item.costPrice; }
+            }
+        });
+        const grossProfit = totalRevenue - totalCogs;
+        const monthlyExp = expenses.rent + expenses.electricity + expenses.gas + expenses.wages;
+
+        const q = question.toLowerCase();
+        let answer = '';
+
+        // Handle "summary of everything" specially
+        if (q.includes('summary of everything') || q.includes('full summary')) {
+            const topMap = {};
+            for (let day of Object.values(sales))
+                for (let [name, qty] of Object.entries(day)) {
+                    if (!topMap[name]) topMap[name] = 0;
+                    topMap[name] += qty;
+                }
+            const top3 = Object.entries(topMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+            return `📋 **Full Business Summary**\n\n` +
+                   `💰 **Revenue (7d):** R${totalRevenue.toFixed(2)}\n` +
+                   `📦 **COGS (7d):** R${totalCogs.toFixed(2)}\n` +
+                   `📈 **Gross Profit:** R${grossProfit.toFixed(2)}\n` +
+                   `💸 **Monthly Expenses:** R${monthlyExp}\n` +
+                   `📊 **Stock:** ${items.length} items, ${totalStock} units total\n` +
+                   `⚠️ **Low stock:** ${lowStock.length} items (${lowStock.map(i=>i.name).join(', ') || 'none'})\n` +
+                   `⏳ **Expiring soon:** ${expiringItems.length} items\n` +
+                   `🏆 **Top sellers:** ${top3.map(([n,q])=>`${n} (${q})`).join(', ') || 'none'}`;
+        }
+
+        if (q.includes('profit') || q.includes('revenue') || q.includes('sales')) {
+            answer = `📊 **Sales & Profit** (last 7 days):\n- Revenue: R${totalRevenue.toFixed(2)}\n- COGS: R${totalCogs.toFixed(2)}\n- Gross Profit: R${grossProfit.toFixed(2)}\n- Monthly Expenses: R${monthlyExp.toFixed(2)}`;
+        } else if (q.includes('stock') || q.includes('inventory') || q.includes('items')) {
+            answer = `📦 **Stock Summary**:\n- Total items: ${items.length}\n- Total units: ${totalStock}\n- Low stock items: ${lowStock.length} (${lowStock.map(i=>i.name).join(', ') || 'none'})\n- Expiring soon: ${expiringItems.length} items`;
+        } else if (q.includes('expense') || q.includes('cost')) {
+            answer = `💰 **Monthly Expenses**:\n- Rent: R${expenses.rent}\n- Electricity: R${expenses.electricity}\n- Gas: R${expenses.gas}\n- Wages: R${expenses.wages}\n- Total: R${monthlyExp}`;
+        } else if (q.includes('top') || q.includes('best') || q.includes('selling')) {
+            const map = {};
+            for (let day of Object.values(sales))
+                for (let [name, qty] of Object.entries(day)) {
+                    if (!map[name]) map[name] = 0;
+                    map[name] += qty;
+                }
+            const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,3);
+            answer = `🏆 **Top Selling Items**:\n${sorted.map(([n,q]) => `${n} (${q} units)`).join('\n') || 'No sales yet.'}`;
+        } else if (q.includes('advice') || q.includes('recommend') || q.includes('suggest')) {
+            let tips = [];
+            if (lowStock.length) tips.push(`Restock ${lowStock.map(i=>i.name).join(', ')} soon.`);
+            if (expiringItems.length) tips.push(`Consider promotions for ${expiringItems.map(i=>i.name).join(', ')} before expiry.`);
+            if (totalRevenue < monthlyExp * 0.5) tips.push('Your revenue is below half of monthly expenses – consider cost-cutting or boosting sales.');
+            if (!tips.length) tips.push('Your business looks healthy! Keep monitoring stock and sales.');
+            answer = `💡 **Recommendations**:\n${tips.map(t=>'- '+t).join('\n')}`;
+        } else {
+            answer = `I'm not sure about that, but here's a quick overview:\n- Revenue (7d): R${totalRevenue.toFixed(2)}\n- Stock items: ${items.length}\n- Monthly expenses: R${monthlyExp}\nAsk me about profit, stock, expenses, top sellers, or advice.`;
+        }
+        return answer;
+    }
+
+    async function sendQuestion() {
+        const question = aiQuestion.value.trim();
+        if (!question) return;
+        addMessage('user', question);
+        aiQuestion.value = '';
+        aiSend.disabled = true;
+        aiSend.textContent = '...';
+
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const response = getMockAIResponse(question);
+        addMessage('assistant', response);
+        aiSend.disabled = false;
+        aiSend.textContent = 'Send';
+    }
+
+    aiSend.addEventListener('click', sendQuestion);
+    aiQuestion.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendQuestion(); });
+
+    function addMessage(role, text) {
+        const div = document.createElement('div');
+        div.className = `ai-message ${role}`;
+        div.textContent = text;
+        aiMessages.appendChild(div);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // ─── EXPORT SUMMARY ─────────────────────────────────────────────
+    // ──────────────────────────────────────────────────────────────────
+
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        const items = getItems();
+        const sales = getSales();
+        const expenses = getExpenses();
+        const last7days = getDates(7);
+        let totalRevenue = 0, totalCogs = 0;
+        const dailyBreakdown = last7days.map(date => {
+            const day = sales[date] || {};
+            let rev = 0, cogs = 0;
+            for (let [name, qty] of Object.entries(day)) {
+                const item = items.find(i => i.name === name);
+                if (item) { rev += qty * item.sellingPrice; cogs += qty * item.costPrice; }
+            }
+            totalRevenue += rev;
+            totalCogs += cogs;
+            return { date, revenue: rev, cogs, gross: rev - cogs };
+        });
+
+        const topItems = (() => {
+            const map = {};
+            for (let day of Object.values(sales))
+                for (let [name, qty] of Object.entries(day)) {
+                    if (!map[name]) map[name] = 0;
+                    map[name] += qty;
+                }
+            return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
+        })();
+
+        let report = '========================================\n';
+        report += '   CAFECASH – BUSINESS SUMMARY REPORT\n';
+        report += '========================================\n';
+        report += `Generated: ${new Date().toLocaleString()}\n`;
+        report += `Branch: ${branch}\n`;
+        report += `User: ${user}\n\n`;
+
+        report += '--- EXPENSES (Monthly) ---\n';
+        report += `Rent: R${expenses.rent}\n`;
+        report += `Electricity: R${expenses.electricity}\n`;
+        report += `Gas: R${expenses.gas}\n`;
+        report += `Wages: R${expenses.wages}\n`;
+        const totalExp = expenses.rent + expenses.electricity + expenses.gas + expenses.wages;
+        report += `Total: R${totalExp}\n\n`;
+
+        report += '--- SALES & PROFIT (Last 7 Days) ---\n';
+        dailyBreakdown.forEach(d => {
+            report += `${d.date}: Revenue R${d.revenue.toFixed(2)}, COGS R${d.cogs.toFixed(2)}, Gross R${d.gross.toFixed(2)}\n`;
+        });
+        report += `\nTotal Revenue: R${totalRevenue.toFixed(2)}\n`;
+        report += `Total COGS: R${totalCogs.toFixed(2)}\n`;
+        report += `Gross Profit: R${(totalRevenue - totalCogs).toFixed(2)}\n`;
+        report += `Estimated Expenses (7d): R${(totalExp/30*7).toFixed(2)}\n`;
+        report += `Net Profit (7d): R${(totalRevenue - totalCogs - totalExp/30*7).toFixed(2)}\n\n`;
+
+        report += '--- CURRENT STOCK ---\n';
+        if (items.length) {
+            items.forEach(i => {
+                const expiryStatus = i.expiry ? (new Date(i.expiry) < new Date() ? 'EXPIRED' : new Date(i.expiry) <= new Date(Date.now()+7*86400000) ? 'EXPIRING SOON' : 'OK') : 'N/A';
+                report += `${i.name}: qty ${i.quantity}, cost R${i.costPrice}, sell R${i.sellingPrice}, expiry ${i.expiry || 'none'} (${expiryStatus})\n`;
+            });
+        } else {
+            report += 'No items in stock.\n';
+        }
+        report += '\n';
+
+        report += '--- TOP 10 SELLING ITEMS (All Time) ---\n';
+        if (topItems.length) {
+            topItems.forEach(([name, qty], idx) => {
+                report += `${idx+1}. ${name} – ${qty} units\n`;
+            });
+        } else {
+            report += 'No sales recorded.\n';
+        }
+        report += '\n--- END OF REPORT ---\n';
+
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CafeCash_Summary_${new Date().toISOString().slice(0,10)}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+</script>
+</body>
+</html>

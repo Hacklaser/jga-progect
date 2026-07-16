@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CafeCash – Subscription</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --primary: #1E3A8A;
+            --accent: #FBBF24;
+            --card: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+            --radius: 1rem;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --text: #f1f5f9;
+            --primary: #3B82F6;
+            --accent: #F59E0B;
+            --card: #1e293b;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: .3s;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+        .logo { display: flex; align-items: center; gap: 0.5rem; }
+        .logo img { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; }
+        .logo .fallback { font-size: 1.8rem; display: none; }
+        .logo span { font-weight: 700; font-size: 1.3rem; }
+        nav a { color: white; text-decoration: none; margin: 0 0.7rem; font-weight: 500; }
+        nav a:hover { text-decoration: underline; }
+        .header-right { display: flex; align-items: center; gap: 0.6rem; }
+        .dark-btn { background: transparent; border: 2px solid white; color: white; padding: 0.2rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; }
+        main { padding: 2rem; max-width: 800px; margin: auto; text-align: center; }
+        .plans { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin: 2rem 0; }
+        .plan {
+            background: var(--card);
+            padding: 2rem 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow);
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border: 2px solid transparent;
+            transition: .2s;
+        }
+        .plan.featured { border-color: var(--accent); }
+        .price { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .period { font-size: 0.9rem; color: #64748b; }
+        button.sub {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .2s;
+        }
+        button.sub:hover { background: var(--primary); opacity: 0.8; }
+        .policy-section {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: left;
+            margin-top: 2rem;
+        }
+        .policy-section h3 { margin-bottom: 1rem; }
+        .policy-section p, .policy-section li { font-size: 0.95rem; line-height: 1.6; }
+        .policy-section ul { padding-left: 1.5rem; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">
+        <img src="Screenshot_20260623_231104.jpg" alt="CafeCash" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <span class="fallback">☕</span>
+        <span>CafeCash</span>
+    </div>
+    <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="stock.html">Stock</a>
+        <a href="subscription.html">Subscription</a>
+    </nav>
+    <div class="header-right">
+        <button class="dark-btn" id="darkToggle">Light/Dark</button>
+    </div>
+</header>
+<main>
+    <h2>Choose Your Plan</h2>
+    <div class="plans">
+        <div class="plan">
+            <h3>Monthly</h3>
+            <div class="price">R159.99</div>
+            <div class="period">per month</div>
+            <button class="sub" onclick="alert('Subscribed to Monthly (demo)')">Subscribe</button>
+        </div>
+        <div class="plan featured">
+            <h3>Yearly</h3>
+            <div class="price">R1,599.99</div>
+            <div class="period">per year (save 16%)</div>
+            <button class="sub" onclick="alert('Subscribed to Yearly (demo)')">Subscribe</button>
+        </div>
+    </div>
+
+    <div class="policy-section">
+        <h3>📋 Subscription Policy</h3>
+        <p><strong>Billing:</strong> Your card will be charged at the start of each billing cycle. Monthly plans are charged every 30 days; yearly plans are charged once per year.</p>
+        <p><strong>Cancellation:</strong> You may cancel at any time. Your subscription will remain active until the end of the current billing period – no refunds for partial months.</p>
+        <p><strong>Features:</strong> All plans include full access to CafeCash's dashboard, stock management, sales recording, and expense tracking.</p>
+        <p><strong>Support:</strong> Email us at <a href="mailto:support@cafecash.co.za">support@cafecash.co.za</a> for any questions.</p>
+        <ul>
+            <li>✔️ No hidden fees</li>
+            <li>✔️ Cancel anytime</li>
+            <li>✔️ Secure payment processing</li>
+        </ul>
+    </div>
+</main>
+<script>
+    if (localStorage.getItem('lg_dark') === 'true') document.body.classList.add('dark');
+    document.getElementById('darkToggle').onclick = () => {
+        const isDark = document.body.classList.toggle('dark');
+        localStorage.setItem('lg_dark', isDark);
+    };
+</script>
+</body>
+</html>
